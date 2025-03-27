@@ -1,0 +1,17 @@
+{
+  "local_version": "1.0.0",
+  "update": [
+    {
+      "version": "1.1.0",
+      "title": "New Feature Added",
+      "level": "High",
+      "details": ["Added a new dashboard", "Fixed minor bugs"]
+    },
+    {
+      "version": "1.2.0",
+      "title": "Performance Improvement",
+      "level": "Medium",
+      "details": ["Improved database performance", "Optimized UI rendering"]
+    }
+  ]
+}

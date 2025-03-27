@@ -63,13 +63,12 @@
         <span slot="title" v-loading="loadingReleases">Release Notes
         <el-popover placement="right" trigger="hover">
           <i slot="reference" class="el-icon-fa-question-circle import-user-icon"></i>
-          <p>Please upgrade to the latest version to enjoy the new features. </p>
-          <p>Reference: <a href="http://docs.onlinejudge.me/#/onlinejudge/guide/upgrade" target="_blank">
-          http://docs.onlinejudge.me/#/onlinejudge/guide/upgrade</a>
+          <p>新しい機能をお楽しみいただくために、最新バージョンにアップグレードしてください。</p>
+          <p>参照: <a href="https://jna.nivms.com/ni/niware/workflow/" target="_blank">
+          NI Collabo</a>
           </p>
         </el-popover>
         </span>
-
         <el-collapse v-model="activeNames" v-for="(release, index) of releases" :key="'release' + index">
           <el-collapse-item :name="index+1">
             <template slot="title">
@@ -92,95 +91,76 @@
   </el-row>
 </template>
 
-
 <script>
-  import { mapGetters } from 'vuex'
-  import browserDetector from 'browser-detect'
-  import InfoCard from '@admin/components/infoCard.vue'
-  import api from '@admin/api'
+import { mapGetters } from 'vuex'
+import browserDetector from 'browser-detect'
+import InfoCard from '@admin/components/infoCard.vue'
+import releaseNotes from '@/assets/data/releaseNotes.json' // ✅ JSON 파일 추가
 
-  export default {
-    name: 'dashboard',
-    components: {
-      InfoCard
-    },
-    data () {
-      return {
-        infoData: {
-          user_count: 0,
-          recent_contest_count: 0,
-          today_submission_count: 0,
-          judge_server_count: 0,
-          env: {}
-        },
-        activeNames: [1],
-        session: {},
-        loadingReleases: true,
-        releases: []
+export default {
+  name: 'dashboard',
+  components: {
+    InfoCard
+  },
+  data () {
+    return {
+      infoData: {
+        user_count: 0,
+        recent_contest_count: 0,
+        today_submission_count: 0,
+        judge_server_count: 0,
+        env: {}
+      },
+      activeNames: [1],
+      session: {},
+      loadingReleases: false, // ✅ API 사용 안 하므로 false로 설정
+      releases: [] // Release Notes 데이터를 저장할 배열
+    }
+  },
+  mounted () {
+    this.loadReleaseNotes() // ✅ API 없이 로컬 JSON에서 데이터 불러오기
+  },
+  methods: {
+    loadReleaseNotes () {
+      // ✅ JSON 파일에서 Release Notes 데이터 로드
+      console.log('📌 로컬 Release Notes 데이터 로드 중...', releaseNotes) // 데이터 확인용
+
+      if (!releaseNotes || !releaseNotes.update) {
+        console.warn('🚨 Release Notes 데이터가 비어 있습니다.')
+        return
       }
-    },
-    mounted () {
-      api.getDashboardInfo().then(resp => {
-        this.infoData = resp.data.data
-      }, () => {
-      })
-      api.getSessions().then(resp => {
-        this.parseSession(resp.data.data)
-      }, () => {
-      })
-      api.getReleaseNotes().then(resp => {
-        this.loadingReleases = false
-        let data = resp.data.data
-        if (!data) {
-          return
+
+      let currentVersion = releaseNotes.local_version
+      releaseNotes.update.forEach(release => {
+        if (release.version > currentVersion) {
+          release.new_version = true
         }
-        let currentVersion = data.local_version
-        data.update.forEach(release => {
-          if (release.version > currentVersion) {
-            release.new_version = true
-          }
-        })
-        this.releases = data.update
-      }, () => {
-        this.loadingReleases = false
       })
+      this.releases = releaseNotes.update
+      console.log('✅ 로컬에서 불러온 Release Notes:', this.releases)
+    }
+  },
+  computed: {
+    ...mapGetters(['profile', 'user', 'isSuperAdmin']),
+    cdn () {
+      return this.infoData.env.STATIC_CDN_HOST
     },
-    methods: {
-      parseSession (sessions) {
-        let session = sessions[0]
-        if (sessions.length > 1) {
-          session = sessions.filter(s => !s.current_session).sort((a, b) => {
-            return a.last_activity < b.last_activity
-          })[0]
-        }
-        this.session = session
-      }
+    https () {
+      return document.URL.slice(0, 5) === 'https'
     },
-    computed: {
-      ...mapGetters(['profile', 'user', 'isSuperAdmin']),
-      cdn () {
-        return this.infoData.env.STATIC_CDN_HOST
-      },
-      https () {
-        return document.URL.slice(0, 5) === 'https'
-      },
-      forceHttps () {
-        return this.infoData.env.FORCE_HTTPS
-      },
-      browser () {
-        let b = browserDetector(this.session.user_agent)
-        if (b.name && b.version) {
-          return b.name + ' ' + b.version
-        } else {
-          return 'Unknown'
-        }
-      },
-      os () {
-        let b = browserDetector(this.session.user_agent)
-        return b.os ? b.os : 'Unknown'
-      }
+    forceHttps () {
+      return this.infoData.env.FORCE_HTTPS
+    },
+    browser () {
+      let b = browserDetector(this.session.user_agent)
+      return b.name && b.version ? `${b.name} ${b.version}` : 'Unknown'
+    },
+    os () {
+      let b = browserDetector(this.session.user_agent)
+      return b.os || 'Unknown'
     }
   }
+}
 </script>
 
 <style lang="less">

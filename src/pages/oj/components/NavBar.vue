@@ -1,10 +1,10 @@
 <template>
   <div id="header">
     <Menu theme="light" mode="horizontal" @on-select="handleRoute" :active-name="activeMenu" class="oj-menu">
-      <div class="logo"><span>{{website.website_name}}</span></div>
+      <div class="logo"><span>Japanias</span></div>
       <Menu-item name="/">
         <Icon type="home"></Icon>
-        {{$t('m.Home')}}
+        {{$t('home')}}
       </Menu-item>
       <Menu-item name="/problem">
         <Icon type="ios-keypad"></Icon>
@@ -30,6 +30,7 @@
           {{$t('m.OI_Rank')}}
         </Menu-item>
       </Submenu>
+      <!--
       <Submenu name="about">
         <template slot="title">
           <Icon type="information-circled"></Icon>
@@ -42,6 +43,7 @@
           {{$t('m.FAQ')}}
         </Menu-item>
       </Submenu>
+        -->
       <template v-if="!isAuthenticated">
         <div class="btn-menu">
           <Button type="ghost"

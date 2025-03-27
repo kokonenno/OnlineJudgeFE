@@ -105,7 +105,7 @@
   import api from '../../api.js'
 
   export default {
-    name: 'Announcement',
+    name: 'お知らせ',
     components: {
       Simditor
     },
